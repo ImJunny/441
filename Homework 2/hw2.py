@@ -9,8 +9,6 @@ student_name = 'Type your full name here'
 student_email = 'Type your email address here'
 
 
-
-
 ########################################################
 # Import
 ########################################################
@@ -20,14 +18,9 @@ from hw2_utils import *
 from collections import deque
 
 
-
-
-
 ##########################################################
 # 1. Uninformed Any-Path Search Algorithms
 ##########################################################
-
-
 def depth_first_search(problem):
     # Initialization for depth first search
     node = Node(problem.init_state)
@@ -35,11 +28,28 @@ def depth_first_search(problem):
     explored = [problem.init_state]  # used as "visited"
     # implement the rest of generic search algorithm
     # for depth-first search
-    pass
 
-
-
+    # find solution while states exist in frontier
+    while frontier:
+        # base case; return node that contains solution path
+        if problem.goal_test(node.state):
+            return node
+        node = frontier.pop()
+        explored.append(node.state)
+        
+        # get states from frontier
+        frontierStates = [n.state for n in frontier]
+        # get children from current node
+        childrenNodes = node.expand(problem)
+        
+        # add more nodes to frontier if not explored
+        for child in childrenNodes:
+            if child.state not in explored and child.state not in frontierStates:
+                frontier.append(child)
     
+    return None
+
+
 def breadth_first_search(problem):
     # Initialization for breadth first search
     node = Node(problem.init_state)
@@ -47,16 +57,32 @@ def breadth_first_search(problem):
     explored = [problem.init_state]  # used as "visited"
     # implement the rest of generic search algorithm
     # for breadth-first search
-    pass
+    
+    while frontier:
+        # pop first node from frontier
+        node = frontier.popleft()
+        
+        # base case; return node that contains solution path
+        if problem.goal_test(node.state):
+            return node
 
+        # get states from frontier
+        frontierStates = [n.state for n in frontier]
+        # get children from current node
+        childrenNodes = node.expand(problem)
 
+        # add more nodes to frontier if not explored
+        for child in childrenNodes:
+            if child.state not in explored and child.state not in frontierStates:
+                frontier.append(child)
+                explored.append(child.state)
+
+    return None
 
 
 ##########################################################
 # 2. Coin Problem
 ##########################################################
-
-
 class CoinPuzzle(Problem):
     # This is a subclass of the class Problem.
     #   See hw2_utils.py for what each method does.
@@ -68,7 +94,7 @@ class CoinPuzzle(Problem):
         self.coins = coins
 
     def actions(self, state):
-        return [coin for coin in self.coins<=state]
+        return [coin for coin in self.coins if coin<=state]
     
     def result(self, state, action):
         return state-action
@@ -76,13 +102,11 @@ class CoinPuzzle(Problem):
     def goal_test(self, state):
         if state==self.goal_state: return True
         return False
-    
+
 
 ##########################################################
 # 3. N-Queens Problem
 ##########################################################
-
-
 class NQueensProblem(Problem):
     # This is a subclass of the class Problem.
     #   See hw2_utils.py for what each method does.
@@ -166,12 +190,9 @@ class NQueensProblem(Problem):
         return True
 
 
-
 ##########################################################
 # 4. Graph Problem
 ##########################################################
-
-
 class GraphProblem(Problem):
     # This is a subclass of the class Problem.
     #   See hw2_utils.py for what each method does.
@@ -180,25 +201,82 @@ class GraphProblem(Problem):
 
     def __init__(self, init_state, goal_state, graph):
         super().__init__(init_state, goal_state)
-        pass
-
+        self.graph=graph
     
     def actions(self, state):
-        pass
-
+        return [city for city in self.graph.edges[state].keys()]
     
     def result(self, state, action):
-        pass
-
+        return action
     
     def goal_test(self, state):
-        pass
+        return self.goal_state==state
 
 
 if __name__ == "__main__":
-    eight_queens = NQueensProblem(8)
-    # print(eight_queens.actions((7,2,6,3,1,5,-1,-1)))
-    # print(eight_queens.result((7,2,-1,-1,-1,-1,-1,-1),6))
-    print(eight_queens.goal_test((7,3,0,2,5,1,6,4)))
 
-    pass
+    old_british_coins_1 = [120,30,24,12,6,3,1]
+    old_british_coins_2 = [1,3,6,12,24,30,120]
+    us_coins_1 = [100,50,25,10,5,1]
+    us_coins_2 = [1,5,10,25,50,100]
+
+    p = CoinPuzzle(48, 0, old_british_coins_1)
+    d = depth_first_search(p); print(d.solution())
+    # [1, 1, 3, 6, 12, 24, 1]
+    b = breadth_first_search(p); print(b.solution())
+    # [24, 24]
+
+    p = CoinPuzzle(48, 0, old_british_coins_2)
+    print(depth_first_search(p).solution())
+    # [30, 12, 6]
+    (breadth_first_search(p).solution())
+    # [24, 24]
+
+    p = CoinPuzzle(48, 0, us_coins_1)
+    d = depth_first_search(p); print(d.solution())
+    # [1, 1, 1, 1, 5, 10, 1, 1, 1, 1, 25]
+    b=breadth_first_search(p); print(b.solution())
+    # [25, 10, 10, 1, 1, 1]
+
+    p = CoinPuzzle(48, 0, us_coins_2)
+    print(depth_first_search(p).solution())
+    # [25, 10, 10, 1, 1, 1]
+    print(breadth_first_search(p).solution())
+    # [1, 1, 1, 10, 10, 25]
+
+    # You can also test...
+
+    # q = NQueensProblem(1)
+    # d = depth_first_search(q); print(d.solution())
+    # # [0]
+    # b = breadth_first_search(q); b.solution()
+    # # [0]
+
+    # d = depth_first_search(NQueensProblem(2)); print(d.solution())
+    # # None
+    # b = breadth_first_search(NQueensProblem(2)); print(b.solution())
+    # # None
+
+    # print(depth_first_search(NQueensProblem(4)).solution())
+    # # [7, 3, 0, 2, 5, 1, 6, 4]
+    # breadth_first_search(NQueensProblem(8)).solution()
+    # # [0, 4, 7, 5, 2, 6, 1, 3]
+    
+    romania_map = Graph(romania_roads, False)
+
+    g = GraphProblem('Arad', 'Bucharest', romania_map)
+    d = depth_first_search(g); print(d.solution())
+    # ['Timisoara', 'Lugoj', 'Mehadia', 'Drobeta', 'Craiova', 'Pitesti', 'Bucharest']
+    b = breadth_first_search(g); print(b.solution())
+    # ['Sibiu', 'Fagaras', 'Bucharest']
+    g = GraphProblem('Urziceni', 'Arad', romania_map)
+    print(depth_first_search(g).solution())
+    # ['Bucharest', 'Fagaras', 'Sibiu', 'Arad']
+    print(breadth_first_search(g).solution())
+    #['Bucharest', 'Fagaras', 'Sibiu', 'Arad']
+    
+    g = GraphProblem('Urziceni', 'NoName', romania_map)
+    print(depth_first_search(g).solution())
+    sol = depth_first_search(g).solution()
+    print(sol)
+    # None
