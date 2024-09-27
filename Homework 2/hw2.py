@@ -35,19 +35,19 @@ def depth_first_search(problem):
         if problem.goal_test(node.state):
             return node
         node = frontier.pop()
-        explored.append(node.state)
         
-        # get states from frontier
-        frontierStates = [n.state for n in frontier]
         # get children from current node
         childrenNodes = node.expand(problem)
         
         # add more nodes to frontier if not explored
         for child in childrenNodes:
-            if child.state not in explored and child.state not in frontierStates:
+            if problem.goal_test(child.state):
+                return child
+            if child.state not in explored:
                 frontier.append(child)
-    
-    return None
+                explored.append(child.state)
+
+    return Node(None, None, None)
 
 
 def breadth_first_search(problem):
@@ -66,18 +66,18 @@ def breadth_first_search(problem):
         if problem.goal_test(node.state):
             return node
 
-        # get states from frontier
-        frontierStates = [n.state for n in frontier]
         # get children from current node
         childrenNodes = node.expand(problem)
 
         # add more nodes to frontier if not explored
         for child in childrenNodes:
-            if child.state not in explored and child.state not in frontierStates:
+            if problem.goal_test(child.state):
+                return child
+            if child.state not in explored:
                 frontier.append(child)
                 explored.append(child.state)
 
-    return None
+    return Node(None, None, None)
 
 
 ##########################################################
@@ -133,7 +133,7 @@ class NQueensProblem(Problem):
                 board[row][col]="x"
                 row+=rowAdd
                 col+=colAdd
-                if row==-1 or col==-1 or row==self.n or col==self.n:break
+                if row==-1 or col==-1 or row==self.n or col==self.n: break
 
         # mark all queens diagonals, verticals, and horizontals
         for i, num in enumerate(state):
@@ -184,9 +184,10 @@ class NQueensProblem(Problem):
         # array, updating tempState every time
         for i in range(len(state)):
             if state[i] in availableSpots:
-                tempState = self.result((tempState),state[i])
+                tempState = self.result((tempState), state[i])
                 availableSpots = self.actions(tempState)
-            else: return False
+            else: 
+                return False
         return True
 
 
@@ -242,25 +243,30 @@ if __name__ == "__main__":
     print(depth_first_search(p).solution())
     # [25, 10, 10, 1, 1, 1]
     print(breadth_first_search(p).solution())
-    # [1, 1, 1, 10, 10, 25]
+    [1, 1, 1, 10, 10, 25]
 
-    # You can also test...
+    #You can also test...
 
-    # q = NQueensProblem(1)
-    # d = depth_first_search(q); print(d.solution())
-    # # [0]
-    # b = breadth_first_search(q); b.solution()
-    # # [0]
+    q = NQueensProblem(1)
+    d = depth_first_search(q); print(d.solution())
+    # [0]
+    b = breadth_first_search(q); print(b.solution())
+    # [0]
 
-    # d = depth_first_search(NQueensProblem(2)); print(d.solution())
-    # # None
-    # b = breadth_first_search(NQueensProblem(2)); print(b.solution())
-    # # None
+    d = depth_first_search(NQueensProblem(2)); print(d.solution())
+    # None
+    b = breadth_first_search(NQueensProblem(2)); print(b.solution())
+    # None
 
-    # print(depth_first_search(NQueensProblem(4)).solution())
-    # # [7, 3, 0, 2, 5, 1, 6, 4]
-    # breadth_first_search(NQueensProblem(8)).solution()
-    # # [0, 4, 7, 5, 2, 6, 1, 3]
+    print(depth_first_search(NQueensProblem(4)).solution())
+    # [2, 0, 3, 1]
+    print(breadth_first_search(NQueensProblem(4)).solution())
+    # [1, 3, 0, 2]
+
+    print(depth_first_search(NQueensProblem(8)).solution())
+    # [7, 3, 0, 2, 5, 1, 6, 4]
+    print(breadth_first_search(NQueensProblem(8)).solution())
+    # [0, 4, 7, 5, 2, 6, 1, 3]
     
     romania_map = Graph(romania_roads, False)
 
@@ -276,7 +282,9 @@ if __name__ == "__main__":
     #['Bucharest', 'Fagaras', 'Sibiu', 'Arad']
     
     g = GraphProblem('Urziceni', 'NoName', romania_map)
-    print(depth_first_search(g).solution())
+    depth_first_search(g).solution() #fix
     sol = depth_first_search(g).solution()
     print(sol)
     # None
+
+    pass

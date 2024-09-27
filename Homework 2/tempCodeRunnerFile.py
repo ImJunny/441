@@ -1,1 +1,1 @@
-        # for item in state:
+state[i]
