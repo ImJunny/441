@@ -5,8 +5,8 @@
 ########################################################
 
 
-student_name = 'Type your full name here'
-student_email = 'Type your email address here'
+student_name = "John Nguyen"
+student_email = 'jnn5163@psu.edu'
 
 
 ########################################################
