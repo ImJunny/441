@@ -101,7 +101,7 @@ def a_star_search(problem):
         
         if lowestCNode in explored:
             continue
-
+        
         explored.append(lowestCNode.state)
         childrenNodes = lowestCNode.expand(problem)
         
@@ -110,7 +110,7 @@ def a_star_search(problem):
                 if child.state not in frontier:
                     frontier.append(child)
                 for existing in frontier:
-                    if existing.state == child.state and child.path_cost+child.heuristic < existing.path_cost+node.heuristic:
+                    if existing.state == child.state and child.path_cost < existing.path_cost:
                         frontier.remove(existing)
                         frontier.append(child)
                         break
@@ -388,3 +388,52 @@ class EightPuzzle(Problem):
             sum+=distance
 
         return sum
+
+
+if __name__ == "__main__":    
+    q = NQueensProblem(8)
+    # print([7, 1, 3, 0, 6, 4, 2, 5], best_first_search(q).solution())
+
+    # print([7, 1, 3, 0, 6, 4, 2, 5], uniform_cost_search(q).solution())
+
+    # print([7, 1, 3, 0, 6, 4, 2, 5], a_star_search(q).solution())
+
+    romania_map = Graph(romania_roads, False)
+    romania_map.locations = romania_city_positions
+    g = GraphProblem('Arad', 'Bucharest', romania_map)
+    print(best_first_search(g).solution())
+    # ['Sibiu', 'Fagaras', 'Bucharest']
+    print(uniform_cost_search(g).solution())
+    # ['Sibiu', 'Rimnicu', 'Pitesti', 'Bucharest']
+    print(a_star_search(g).solution())
+    # ['Sibiu', 'Rimnicu', 'Pitesti', 'Bucharest']
+
+    map = Graph(best_graph_edges, True)
+    map.heuristics = best_graph_h
+    g = GraphProblem('S', 'G', map)
+    print(best_first_search(g).solution())
+    # ['B', 'G']
+
+    newMap = Graph(uniform_graph_edges, True)
+    bar = GraphProblem('S', 'G', newMap)
+    print(uniform_cost_search(bar).solution())
+    # ['A', 'D', 'G']
+
+    map = Graph(a_star_graph_edges, True)
+    map.heuristics = a_star_graph_admissible_h
+    g = GraphProblem('S', 'G', map)
+    print(a_star_search(g).solution())
+    # ['B', 'C', 'G']
+    map.heuristics = a_star_graph_consistent_h
+    g = GraphProblem('S', 'G', map)
+    print(a_star_search(g).solution())
+    # ['A', 'C', 'G']
+
+    
+
+    e = EightPuzzle((1,4,0,6,3,2,7,8,5))
+    print(a_star_search(e).solution())
+
+    e = EightPuzzle((3, 4, 1, 7, 6, 0, 2, 8, 5))
+    print(a_star_search(e).solution())
+
