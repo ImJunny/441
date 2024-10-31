@@ -82,12 +82,12 @@ class TestGraph(unittest.TestCase):
     def testGraphH(self):
         romania_map = Graph(romania_roads, False)
         romania = GraphProblem('Arad', 'Bucharest', romania_map)
-        self.assertEqual(romania.h('Arad'), "inf")
-        self.assertEqual(romania.h('Sibiu'), "inf")
-        self.assertEqual(romania.h('Fagaras'), "inf")
-        self.assertEqual(romania.h('Pitesti'), "inf")
-        self.assertEqual(romania.h('Rimnicu'), "inf")
-        self.assertEqual(romania.h('Bucharest'), "inf")
+        self.assertEqual(romania.h('Arad'), math.inf)
+        self.assertEqual(romania.h('Sibiu'), math.inf)
+        self.assertEqual(romania.h('Fagaras'), math.inf)
+        self.assertEqual(romania.h('Pitesti'), math.inf)
+        self.assertEqual(romania.h('Rimnicu'), math.inf)
+        self.assertEqual(romania.h('Bucharest'), math.inf)
 
         romania_map = Graph(romania_roads, False)
         romania_map.locations = romania_city_positions

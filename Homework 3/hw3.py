@@ -300,7 +300,7 @@ class GraphProblem(Problem):
                 yGoalState = self.graph.locations[self.goal_state][1]
                 return math.sqrt((xGoalState-xState)**2+(yGoalState-yState)**2)
             except:
-                return "inf"
+                return math.inf
 
 
 
