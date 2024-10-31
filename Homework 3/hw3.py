@@ -36,12 +36,15 @@ def best_first_search(problem):
     explored = [problem.init_state]  # used as "visited"
 
     while frontier:
+        # if state is goal state, return node
         if problem.goal_test(node.state):
             return node
         
+        # pick best node from frontier
         frontier = deque(sorted(frontier, key=lambda node: node.heuristic))
         lowestHNode = frontier.popleft()
         
+        # create all one-step extentions of node to each child
         childrenNodes = lowestHNode.expand(problem)
 
         for child in childrenNodes:
@@ -61,15 +64,19 @@ def uniform_cost_search(problem):
     explored = [problem.init_state]  # used as "visited"
 
     while frontier:
+        # pick best node from frontier
         frontier = deque(sorted(frontier, key=lambda node: node.path_cost))
         lowestCNode = frontier.popleft()
 
+        # if state is goal state, return node
         if problem.goal_test(lowestCNode.state):
             return lowestCNode
         
+        # if state in explored, continue
         if lowestCNode in explored:
             continue
 
+        # create all one-step extentions of node to each child
         explored.append(lowestCNode.state)
         childrenNodes = lowestCNode.expand(problem)
         
@@ -93,15 +100,19 @@ def a_star_search(problem):
     explored = []                    # used as "expanded" (not "visited")
     
     while frontier:
+        # pick best node from frontier
         frontier = deque(sorted(frontier, key=lambda node: node.path_cost+node.heuristic))
         lowestCNode = frontier.popleft()
 
+        # if state is goal state, return node
         if problem.goal_test(lowestCNode.state):
             return lowestCNode
         
+        # if state in explored, continue
         if lowestCNode in explored:
             continue
         
+        # create all one-step extentions of node to each child
         explored.append(lowestCNode.state)
         childrenNodes = lowestCNode.expand(problem)
         
