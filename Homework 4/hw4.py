@@ -40,18 +40,15 @@ def genetic_algorithm(problem, f_thres, ngen=1000):
       - i  : number of generations computed
       - sol: best chromosome found
     """
-    # test
-    # population = problem.init_population()
-    # if population == problem.solution():
-    #     pass
-    # best = problem.fittest(population, f_thres)
-    # if best: return -1, best
-    # for i in range(ngen):
-    #     population = problem.next_generation(population)
-    #     best = problem.fittest(population, f_thres)
-    #     if best: return i, best
-
-    # if 
+    population = problem.init_population()
+    best = problem.fittest(population, f_thres)
+    if best: return (-1, best)
+    for i in range(ngen):
+        population = problem.next_generation(population)
+        best = problem.fittest(population, f_thres)
+        if best: return (i, best)
+    best = problem.fittest(population)
+    return (ngen, best)
 
   
 
@@ -79,7 +76,16 @@ class NQueensProblem(GeneticProblem):
 
  
     def next_generation(self, population):
-        pass
+        newGen = []
+        for chrom1 in population:
+            tempPopulation = population.copy()
+            tempPopulation.remove(chrom1)
+            chrom2 = random.choice(tempPopulation)
+
+            tempChrom = self.crossover(chrom1,chrom2)
+            tempChrom = self.mutate(tempChrom)
+            newGen.append(tempChrom)
+        return newGen
 
     def mutate(self, chrom):
         randProb = random.random()
@@ -112,9 +118,7 @@ class NQueensProblem(GeneticProblem):
     
     def select(self, m, population):
         probs = []
-        sumFitness = 0
-        for i in range(len(population)):
-            sumFitness += self.fitness_fn(list(population)[i])
+        sumFitness = sum(list(map(self.fitness_fn, population)))
 
         for i in range(len(population)):
             prob = self.fitness_fn(list(population)[i])/sumFitness
@@ -126,7 +130,7 @@ class NQueensProblem(GeneticProblem):
         for i in range(m):
             randNum = random.random()
             for i, probSum in enumerate(probDistribution):
-                if probSum>=randNum:
+                if randNum<=probSum:
                     selected.append(population[i])
                     break
         return selected
@@ -165,35 +169,125 @@ class FunctionProblem(GeneticProblem):
         self.m_prob = m_prob
 
     def init_population(self):
-
-        pass
+        chromosomes = []
+        for i in range(self.n):
+            randX = random.uniform(0,self.g_bases[0])
+            randY = random.uniform(0,self.g_bases[1])
+            chromosomes.append((randX, randY))
+        return chromosomes
 
     def next_generation(self, population):
-        pass
+        populationFitness = list(map(self.fitness_fn, population))
+        populationFitness = sorted(populationFitness)
+
+        firstHalfN = math.floor(len(population)/2)
+        secondHalfN = len(population) - firstHalfN
+        bestChroms = []
+        for i in range(firstHalfN):
+            if self.fitness_fn(population[i]) == populationFitness[i]:
+                bestChroms.append(population[i])
+
+        modifiedBestChroms = []
+        for chrom1 in bestChroms:
+            #how to choose available chrom2? lets assume its anything in population including itself
+            chrom2 = random.choice(bestChroms)
+            tempChrom = self.crossover(chrom1, chrom2)
+            tempChrom = self.mutate(tempChrom)
+            modifiedBestChroms.append(tempChrom)
+        
+        newGen = bestChroms + modifiedBestChroms
+        return newGen
         
     def mutate(self, chrom):
-        pass
+        p = random.random()
+        if p>self.m_prob:
+            return chrom
+        else:
+            randIndex = random.randint(0,len(chrom)-1)
+            randF = random.uniform(0, self.g_bases[randIndex])
+            tempChrom = list(chrom)
+            tempChrom[randIndex] = randF
+            return tuple(tempChrom)
         
     def crossover(self, chrom1, chrom2):
-        pass
+        rand = random.randint(0,1) # maybe?
+        alpha = random.random()
+        xNew = (1-alpha) * chrom1[0] + alpha * chrom2[0]
+        yNew = (1-alpha) * chrom1[1] + alpha * chrom2[1]
+        if rand==0:
+            return (chrom1[0], yNew)
+        else:
+            return (xNew, chrom1[1])
     
+
     def fitness_fn(self, chrom):
-        pass
+        x = chrom[0]
+        y = chrom[1]
+        return x * math.sin(4*x) + 1.1 * y * math.sin(2*y)
     
+
     def select(self, m, population):
-        pass
+        probs = []
+        n = len(population)
+        for k in range(n):
+            prob = (self.n-k)/sum(range(1,n+1))
+            probs.append(prob)
+
+        probs = sorted(probs) #sort probs by rank?
+
+        distribution = [sum(probs[:i] for i in range(1, len(probs)+1))]
+
+        selected = []
+        for i in range(m):
+            randNum = random.random()
+            for i, probSum in enumerate(distribution):
+                if randNum<=probSum:
+                    selected.append(population[i])
+                    break
+        return selected
+
 
     def fittest(self, population, f_thres=None):
-        pass
+        if f_thres is None:
+            bestChrom = population[0]
+            for i in range(1,len(population)):
+                if (self.fitness_fn(population[i])>self.fitness_fn(bestChrom)):
+                    bestChrom = population[i]
+            return bestChrom
+        elif f_thres:
+            bestChrom = population[0]
+            for i in range(1,len(population)):
+                if (self.fitness_fn(population[i])>self.fitness_fn(bestChrom)):
+                    bestChrom = population[i]
+            if (self.fitness_fn(bestChrom)>=f_thres): return bestChrom
+            else: return None
+        else:
+            return None
+
 
 
 if __name__ == "__main__":
-    # p = NQueensProblem(5, range(8), 8, 0.2)
-    # population = [(4,2,6,4,7,4,3,4),(3,5,5,1,5,0,7,7),(0,4,0,3,4,5,6,6),(5,7,3,1,7,4,5,7),(6,7,5,7,4,7,5,7)]
-    # print(p.select(2,population))
+    p = NQueensProblem(10, (0,1,2,3), 4, 0.2)
+    i, sol = genetic_algorithm(p, f_thres=6, ngen=1000)
+    print(i, sol)
+    print(p.fitness_fn(sol),end="\n\n")
 
-    p = NQueensProblem(5, range(8), 8, 0.2)
-    population = [(5,4,0,2,1,1,4,3),(1,4,5,2,0,1,5,7),(0,2,7,4,6,0,4,5),(6,3,5,5,2,3,1,0),(6,5,1,7,7,2,2,3)]
-    print(list(map(p.fitness_fn, population)))
-    print(p.fittest(population))
-    print(p.fittest(population, 25))
+    p = NQueensProblem(100, (0,1,2,3,4,5,6,7), 8, 0.2)
+    i, sol = genetic_algorithm(p, f_thres=25, ngen=1000)
+    print(i, sol)
+    print(p.fitness_fn(sol),end="\n\n")
+
+    p = NQueensProblem(100, (0,1,2,3,4,5,6,7), 8, 0.2)
+    i, sol = genetic_algorithm(p, f_thres=28, ngen=1000)
+    print(i, sol)
+    print(p.fitness_fn(sol),end="\n\n")
+
+    # p = NQueensProblem(12, (10,10), 2, 0.2)
+    # i, sol = genetic_algorithm(p, f_thres=-18, ngen=1000)
+    # print(i, sol)
+    # print(p.fitness_fn(sol),end="\n\n")
+
+    # p = NQueensProblem(20, (10,10), 2, 0.2)
+    # i, sol = genetic_algorithm(p, f_thres=-18.5519, ngen=1000)
+    # print(i, sol)
+    # print(p.fitness_fn(sol),end="\n\n")
