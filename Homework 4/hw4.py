@@ -200,9 +200,9 @@ class FunctionProblem(GeneticProblem):
         xNew = (1-alpha) * chrom1[0] + alpha * chrom2[0]
         yNew = (1-alpha) * chrom1[1] + alpha * chrom2[1]
         if rand==0:
-            return (chrom1[0], yNew)
-        else:
             return (xNew, chrom1[1])
+        else:
+            return (chrom1[0], yNew)
     
 
     def fitness_fn(self, chrom):
