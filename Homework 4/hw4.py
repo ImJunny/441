@@ -242,33 +242,3 @@ class FunctionProblem(GeneticProblem):
             else: return None
         else:
             return None
-
-
-
-if __name__ == "__main__":  
-    # p = NQueensProblem(100, range(8), 8, 0.2)
-    # print(p.next_generation(p.init_population()))
-    p = NQueensProblem(10, (0,1,2,3), 4, 0.2)
-    i, sol = genetic_algorithm(p, f_thres=6, ngen=1000)
-    print(i, sol)
-    print(p.fitness_fn(sol),end="\n\n")
-
-    p = NQueensProblem(100, (0,1,2,3,4,5,6,7), 8, 0.2)
-    i, sol = genetic_algorithm(p, f_thres=25, ngen=1000)
-    print(i, sol)
-    print(p.fitness_fn(sol),end="\n\n")
-
-    p = NQueensProblem(100, (0,1,2,3,4,5,6,7), 8, 0.2)
-    i, sol = genetic_algorithm(p, f_thres=28, ngen=1000)
-    print(i, sol)
-    print(p.fitness_fn(sol),end="\n\n")
-
-    p = FunctionProblem(12, (10,10), 2, 0.2)
-    i, sol = genetic_algorithm(p, f_thres=-18, ngen=1000)
-    print(i, sol)
-    print(p.fitness_fn(sol),end="\n\n")
-
-    p = FunctionProblem(20, (10,10), 2, 0.2)
-    i, sol = genetic_algorithm(p, f_thres=-18.5519, ngen=1000)
-    print(i, sol)
-    print(p.fitness_fn(sol),end="\n\n")
