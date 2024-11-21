@@ -27,7 +27,6 @@ import random
 
 
 
-
 ################################################################
 # 1. Genetic Algorithm
 ################################################################
@@ -74,14 +73,12 @@ class NQueensProblem(GeneticProblem):
             population.append(tuple(chromasome))
         return population
 
- 
     def next_generation(self, population):
+        selected = self.select(len(population), population)
         newGen = []
         for chrom1 in population:
-            tempPopulation = population.copy()
-            tempPopulation.remove(chrom1)
-            chrom2 = random.choice(tempPopulation)
-
+            #crossover chrom1 with another chrom from self.select for better crossovers
+            chrom2 = random.choice(selected)
             tempChrom = self.crossover(chrom1,chrom2)
             tempChrom = self.mutate(tempChrom)
             newGen.append(tempChrom)
@@ -115,38 +112,30 @@ class NQueensProblem(GeneticProblem):
                 if conflict(i, chrom[i], j , chrom[j]):
                     nonattacking-=1
         return nonattacking
-    
+
     def select(self, m, population):
-        probs = []
-        sumFitness = sum(list(map(self.fitness_fn, population)))
+        sumFitness = sum([self.fitness_fn(chrom) for chrom in population])
 
-        for i in range(len(population)):
-            prob = self.fitness_fn(list(population)[i])/sumFitness
-            probs.append(prob)
-
-        probDistribution = [sum(probs[:i]) for i in range(1,len(probs)+1)]
+        probDistribution = []
+        cumulative_sum = 0
+        for chrom in population:
+            cumulative_sum += self.fitness_fn(chrom) / sumFitness
+            probDistribution.append(cumulative_sum)
 
         selected = []
-        for i in range(m):
-            randNum = random.random()
-            for i, probSum in enumerate(probDistribution):
-                if randNum<=probSum:
-                    selected.append(population[i])
+        for _ in range(m):
+            for j, probSum in enumerate(probDistribution):
+                if random.random()<=probSum:
+                    selected.append(population[j])
                     break
         return selected
 
     def fittest(self, population, f_thres=None):
         if f_thres is None:
-            bestChrom = population[0]
-            for i in range(1,len(population)):
-                if (self.fitness_fn(population[i])>self.fitness_fn(bestChrom)):
-                    bestChrom = population[i]
+            bestChrom = max(population, key=self.fitness_fn)
             return bestChrom
         elif f_thres:
-            bestChrom = population[0]
-            for i in range(1,len(population)):
-                if (self.fitness_fn(population[i])>self.fitness_fn(bestChrom)):
-                    bestChrom = population[i]
+            bestChrom = max(population, key=self.fitness_fn)
             if (self.fitness_fn(bestChrom)>=f_thres): return bestChrom
             else: return None
         else:
@@ -170,27 +159,23 @@ class FunctionProblem(GeneticProblem):
 
     def init_population(self):
         chromosomes = []
-        for i in range(self.n):
+        for _ in range(self.n):
             randX = random.uniform(0,self.g_bases[0])
             randY = random.uniform(0,self.g_bases[1])
             chromosomes.append((randX, randY))
         return chromosomes
 
     def next_generation(self, population):
-        populationFitness = list(map(self.fitness_fn, population))
-        populationFitness = sorted(populationFitness)
+        populationByFitness = sorted(population, key=self.fitness_fn)
+        bestChroms = populationByFitness[:math.ceil(len(population)/2)]
 
-        firstHalfN = math.floor(len(population)/2)
-        secondHalfN = len(population) - firstHalfN
-        bestChroms = []
-        for i in range(firstHalfN):
-            if self.fitness_fn(population[i]) == populationFitness[i]:
-                bestChroms.append(population[i])
+        selected = self.select(len(population), population)
 
         modifiedBestChroms = []
-        for chrom1 in bestChroms:
-            #how to choose available chrom2? lets assume its anything in population including itself
-            chrom2 = random.choice(bestChroms)
+        for i in range(len(population)//2):
+            chrom1 = bestChroms[i]
+            chrom2 = random.choice(selected)
+
             tempChrom = self.crossover(chrom1, chrom2)
             tempChrom = self.mutate(tempChrom)
             modifiedBestChroms.append(tempChrom)
@@ -210,7 +195,7 @@ class FunctionProblem(GeneticProblem):
             return tuple(tempChrom)
         
     def crossover(self, chrom1, chrom2):
-        rand = random.randint(0,1) # maybe?
+        rand = random.randint(0,1)
         alpha = random.random()
         xNew = (1-alpha) * chrom1[0] + alpha * chrom2[0]
         yNew = (1-alpha) * chrom1[1] + alpha * chrom2[1]
@@ -233,9 +218,9 @@ class FunctionProblem(GeneticProblem):
             prob = (self.n-k)/sum(range(1,n+1))
             probs.append(prob)
 
-        probs = sorted(probs) #sort probs by rank?
+        probs = sorted(probs)
 
-        distribution = [sum(probs[:i] for i in range(1, len(probs)+1))]
+        distribution = [sum(probs[:i]) for i in range(1, len(probs)+1)]
 
         selected = []
         for i in range(m):
@@ -249,24 +234,20 @@ class FunctionProblem(GeneticProblem):
 
     def fittest(self, population, f_thres=None):
         if f_thres is None:
-            bestChrom = population[0]
-            for i in range(1,len(population)):
-                if (self.fitness_fn(population[i])>self.fitness_fn(bestChrom)):
-                    bestChrom = population[i]
+            bestChrom = min(population, key=self.fitness_fn)
             return bestChrom
         elif f_thres:
-            bestChrom = population[0]
-            for i in range(1,len(population)):
-                if (self.fitness_fn(population[i])>self.fitness_fn(bestChrom)):
-                    bestChrom = population[i]
-            if (self.fitness_fn(bestChrom)>=f_thres): return bestChrom
+            bestChrom = min(population, key=self.fitness_fn)
+            if (self.fitness_fn(bestChrom)<=f_thres): return bestChrom
             else: return None
         else:
             return None
 
 
 
-if __name__ == "__main__":
+if __name__ == "__main__":  
+    # p = NQueensProblem(100, range(8), 8, 0.2)
+    # print(p.next_generation(p.init_population()))
     p = NQueensProblem(10, (0,1,2,3), 4, 0.2)
     i, sol = genetic_algorithm(p, f_thres=6, ngen=1000)
     print(i, sol)
@@ -282,12 +263,12 @@ if __name__ == "__main__":
     print(i, sol)
     print(p.fitness_fn(sol),end="\n\n")
 
-    # p = NQueensProblem(12, (10,10), 2, 0.2)
-    # i, sol = genetic_algorithm(p, f_thres=-18, ngen=1000)
-    # print(i, sol)
-    # print(p.fitness_fn(sol),end="\n\n")
+    p = FunctionProblem(12, (10,10), 2, 0.2)
+    i, sol = genetic_algorithm(p, f_thres=-18, ngen=1000)
+    print(i, sol)
+    print(p.fitness_fn(sol),end="\n\n")
 
-    # p = NQueensProblem(20, (10,10), 2, 0.2)
-    # i, sol = genetic_algorithm(p, f_thres=-18.5519, ngen=1000)
-    # print(i, sol)
-    # print(p.fitness_fn(sol),end="\n\n")
+    p = FunctionProblem(20, (10,10), 2, 0.2)
+    i, sol = genetic_algorithm(p, f_thres=-18.5519, ngen=1000)
+    print(i, sol)
+    print(p.fitness_fn(sol),end="\n\n")
